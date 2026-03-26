@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma7
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String  @id @default(cuid())
+  name     String?
+  email    String  @unique
+  password String? // Added in case you want NextAuth Credentials provider later
+  phone    String?
+  isAdmin  Boolean @default(false)
+
+  // A user can have many listings (acting as the agent)
+  listings Listing[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Listing {
+  id           String  @id @default(cuid())
+  title        String
+  description  String
+  price        Float
+  beds         Int
+  baths        Int
+  propertyType String // e.g., "HOUSE", "APARTMENT", "CONDO", "TOWNHOUSE"
+  suburb       String
+  city         String
+  address      String
+  images       String // Store as a comma-separated string or use a relation
+  status       String  @default("AVAILABLE") // AVAILABLE, SOLD, RENTED
+  isFeatured   Boolean @default(false)
+
+  // Admin-only metadata
+  internalNotes String?
+  ownerContact  String?
+
+  // Relation to User
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([price])
+  @@index([suburb])
+  @@index([propertyType])
+  @@index([beds])
+}
